@@ -1,0 +1,45 @@
+{
+	"name": "nette/caching",
+	"description": "⏱ Nette Caching: library with easy-to-use API and many cache backends.",
+	"keywords": ["nette", "cache", "journal", "sqlite", "memcached"],
+	"homepage": "https://nette.org",
+	"license": ["BSD-3-Clause", "GPL-2.0-only", "GPL-3.0-only"],
+	"authors": [
+		{
+			"name": "David Grudl",
+			"homepage": "https://davidgrudl.com"
+		},
+		{
+			"name": "Nette Community",
+			"homepage": "https://nette.org/contributors"
+		}
+	],
+	"require": {
+		"php": ">=8.0 <8.3",
+		"nette/finder": "^2.4 || ^3.0",
+		"nette/utils": "^3.2 || ~4.0.0"
+	},
+	"require-dev": {
+		"nette/tester": "^2.4",
+		"nette/di": "^3.1 || ^4.0",
+		"latte/latte": "^2.11 || ^3.0",
+		"tracy/tracy": "^2.9",
+		"phpstan/phpstan": "^1.0"
+	},
+	"suggest": {
+		"ext-pdo_sqlite": "to use SQLiteStorage or SQLiteJournal"
+	},
+	"autoload": {
+		"classmap": ["src/"]
+	},
+	"minimum-stability": "dev",
+	"scripts": {
+		"phpstan": "phpstan analyse",
+		"tester": "tester tests -s"
+	},
+	"extra": {
+		"branch-alias": {
+			"dev-master": "3.2-dev"
+		}
+	}
+}

@@ -1,0 +1,125 @@
+<?php
+declare(strict_types=1);
+
+namespace Nette\Bridges\ApplicationTracy;
+
+use Nette\Application\UI\Presenter;
+use Tracy;
+use Tracy\Dumper;
+use Tracy\Helpers;
+
+?>
+<style class="tracy-debug">
+	#tracy-debug .nette-RoutingPanel table {
+		font: 9pt/1.5 Consolas, monospace;
+	}
+
+	#tracy-debug .nette-RoutingPanel tr {
+		border: #d6ceb0 0 solid;
+	}
+
+	#tracy-debug .nette-RoutingPanel .yes td {
+		background: #BDE678 !important;
+	}
+
+	#tracy-debug .nette-RoutingPanel .may td {
+		background: #C1D3FF !important;
+	}
+
+	#tracy-debug .nette-RoutingPanel .error td {
+		background: #ffd2c3 !important;
+	}
+
+	#tracy-debug .nette-RoutingPanel td.symbol {
+		text-align: center;
+	}
+
+	#tracy-debug .nette-RoutingPanel td:first-child {
+		width: 20px;
+	}
+
+	#tracy-debug .nette-RoutingPanel td:nth-child(2) {
+		white-space: nowrap;
+	}
+
+	#tracy-debug .nette-RoutingPanel pre, #tracy-debug .nette-RoutingPanel code {
+		display: inline;
+		background: transparent;
+	}
+
+	#tracy-debug .nette-RoutingPanel-rel {
+		background: #eee;
+		white-space: nowrap;
+	}
+</style>
+
+<h1>
+<?php if ($matched === null): ?>
+	no route
+<?php elseif (isset($matched[Presenter::PRESENTER_KEY])): ?>
+	<?= Helpers::escapeHtml($matched[Presenter::PRESENTER_KEY] . ':' . (isset($matched[Presenter::ACTION_KEY]) ? $matched[Presenter::ACTION_KEY] : Presenter::DEFAULT_ACTION) . (isset($matched[Presenter::SIGNAL_KEY]) ? " {$matched[Presenter::SIGNAL_KEY]}!" : '')) ?>
+<?php endif ?>
+</h1>
+
+<div class="tracy-inner nette-RoutingPanel">
+<div class="tracy-inner-container">
+<?php if (empty($routers)): ?>
+	<p>No routers defined.</p>
+
+<?php else: ?>
+	<table>
+	<thead>
+	<tr>
+		<th></th>
+		<th>Mask / Class</th>
+		<th>Defaults</th>
+		<?php if ($hasModule): ?><th>Module</th><?php endif ?>
+		<th>Matched as</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	<?php foreach ($routers as $router): ?>
+	<tr class="<?= $router->matched ?>" style="border-width: <?=($router->gutterTop ?? 0) * 3?>px 0 <?=($router->gutterBottom ?? 0) * 3?>px <?=$router->level * 6?>px">
+		<td class="symbol" title="<?= Helpers::escapeHtml(['yes' => 'matched as first', 'may' => 'suitable but not matched as first', 'no' => '', 'oneway' => 'one-way', 'error' => 'error'][$router->matched]) ?>"
+			><?= ['yes' => '✓', 'may' => '≈', 'no' => '', 'oneway' => '⛔', 'error' => '❌'][$router->matched] ?></td>
+
+		<td><code title="<?= Helpers::escapeHtml($router->class) ?>"><?=
+			isset($router->path) ? '<small>' . Helpers::escapeHtml($router->path) . '</small>' : '',
+			isset($router->mask) ? str_replace(['/', '-'], ['<wbr>/', '<wbr>-'], Helpers::escapeHtml($router->mask)) : str_replace('\\', '<wbr>\\', Helpers::escapeHtml($router->class))
+		?></code></td>
+
+		<td><code>
+		<?php foreach ($router->defaults as $key => $value): ?>
+			<?= Helpers::escapeHtml($key), '&nbsp;=&nbsp;', is_string($value) ? Helpers::escapeHtml($value) . '<br />' : Dumper::toHtml($value, [Dumper::COLLAPSE => true, Dumper::LIVE => true]) ?>
+		<?php endforeach ?>
+		</code></td>
+
+		<?php if ($hasModule): ?><td><code><?= Helpers::escapeHtml($router->module) ?></code></td><?php endif ?>
+
+		<td><?php if ($router->params): ?><code>
+		<?php $params = $router->params; ?>
+		<?php if (isset($params[Presenter::PRESENTER_KEY])): ?>
+		<strong><?= Helpers::escapeHtml($params['presenter'] . ':' . (isset($params[Presenter::ACTION_KEY]) ? $params[Presenter::ACTION_KEY] : Presenter::DEFAULT_ACTION)) ?></strong><br />
+		<?php unset($params[Presenter::PRESENTER_KEY], $params[Presenter::ACTION_KEY]) ?>
+		<?php endif ?>
+		<?php foreach ($params as $key => $value): ?>
+			<?= Helpers::escapeHtml($key), '&nbsp;=&nbsp;', is_string($value) ? Helpers::escapeHtml($value) . '<br />' : Dumper::toHtml($value, [Dumper::COLLAPSE => true, Dumper::LIVE => true]) ?>
+		<?php endforeach ?>
+		</code><?php elseif ($router->error): ?><strong><?= Helpers::escapeHtml($router->error->getMessage()) ?></strong><?php endif ?></td>
+	</tr>
+	<?php endforeach ?>
+	</tbody>
+	</table>
+<?php endif ?>
+</div>
+
+<div class="tracy-inner-container">
+	<p><code><?= Helpers::escapeHtml($method) ?></code>
+	<code><?= Helpers::escapeHtml($url->getBaseUrl()) ?><wbr><span class="nette-RoutingPanel-rel"><?= str_replace(['&amp;', '?'], ['<wbr>&amp;', '<wbr>?'], Helpers::escapeHtml($url->getRelativeUrl())) ?></span></code></p>
+
+	<?php if ($source): ?>
+	<p><a href="<?= Helpers::escapeHtml(Tracy\Helpers::editorUri($source->getFileName(), $source->getStartLine())) ?>"><?= $source instanceof \ReflectionClass ? $source->getName() : $source->getDeclaringClass()->getName() . '::' . $source->getName() . '()' ?></a></p>
+	<?php endif ?>
+</div>
+</div>
